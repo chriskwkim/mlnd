@@ -13265,10 +13265,14 @@ test_{network} = bottleneck_features['test']</code></pre>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[63]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: Obtain bottleneck features from another pre-trained CNN.</span>
+<span class="n">bottleneck_features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;bottleneck_features/DogInceptionV3Data.npz&#39;</span><span class="p">)</span>
+<span class="n">train_Inception</span> <span class="o">=</span> <span class="n">bottleneck_features</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span>
+<span class="n">valid_Inception</span> <span class="o">=</span> <span class="n">bottleneck_features</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span>
+<span class="n">test_Inception</span> <span class="o">=</span> <span class="n">bottleneck_features</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
 </pre></div>
 
 </div>
@@ -13287,19 +13291,54 @@ test_{network} = bottleneck_features['test']</code></pre>
 </code></pre>
 <p><strong>Question 5:</strong> Outline the steps you took to get to your final CNN architecture and your reasoning at each step.  Describe why you think the architecture is suitable for the current problem.</p>
 <p><strong>Answer:</strong></p>
+<p><strong>I choose the Inception model. It interested me in that it utilize 1x1, 3x3, 5x5 convolutions and 3x3 max pooling in stages, and concatenate the output and feed to the next stage, which seems very effective in finding features.</strong></p>
+<hr>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[66]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: Define your architecture.</span>
+<span class="n">Inception_model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">()</span>
+<span class="n">Inception_model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">GlobalAveragePooling2D</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="n">train_Inception</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+<span class="n">Inception_model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="mi">133</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softmax&#39;</span><span class="p">))</span>
+
+<span class="n">Inception_model</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 
 </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+global_average_pooling2d_8 ( (None, 2048)              0         
+_________________________________________________________________
+dense_12 (Dense)             (None, 133)               272517    
+=================================================================
+Total params: 272,517
+Trainable params: 272,517
+Non-trainable params: 0
+_________________________________________________________________
+</pre>
+</div>
+</div>
+
 </div>
 </div>
 
@@ -13314,10 +13353,11 @@ test_{network} = bottleneck_features['test']</code></pre>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[67]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: Compile the model.</span>
+<span class="n">Inception_model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s1">&#39;categorical_crossentropy&#39;</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;rmsprop&#39;</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">])</span>
 </pre></div>
 
 </div>
@@ -13337,13 +13377,131 @@ test_{network} = bottleneck_features['test']</code></pre>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[68]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: Train the model.</span>
+<span class="n">checkpointer</span> <span class="o">=</span> <span class="n">ModelCheckpoint</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;saved_models/weights.best.InceptionV3.hdf5&#39;</span><span class="p">,</span> 
+                              <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">save_best_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">Inception_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_Inception</span><span class="p">,</span> <span class="n">train_targets</span><span class="p">,</span>
+                   <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">valid_Inception</span><span class="p">,</span> <span class="n">valid_targets</span><span class="p">),</span>
+                   <span class="n">epochs</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">checkpointer</span><span class="p">],</span>
+                   <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 
 </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Train on 6680 samples, validate on 835 samples
+Epoch 1/20
+6680/6680 [==============================] - 9s 1ms/step - loss: 1.1655 - acc: 0.7016 - val_loss: 0.6043 - val_acc: 0.8204
+
+Epoch 00001: val_loss improved from inf to 0.60432, saving model to saved_models/weights.best.InceptionV3.hdf5
+Epoch 2/20
+6680/6680 [==============================] - 2s 236us/step - loss: 0.4764 - acc: 0.8525 - val_loss: 0.5673 - val_acc: 0.8431
+
+Epoch 00002: val_loss improved from 0.60432 to 0.56730, saving model to saved_models/weights.best.InceptionV3.hdf5
+Epoch 3/20
+6680/6680 [==============================] - 2s 228us/step - loss: 0.3672 - acc: 0.8831 - val_loss: 0.6093 - val_acc: 0.8419
+
+Epoch 00003: val_loss did not improve from 0.56730
+Epoch 4/20
+6680/6680 [==============================] - 2s 235us/step - loss: 0.2978 - acc: 0.9088 - val_loss: 0.6812 - val_acc: 0.8431
+
+Epoch 00004: val_loss did not improve from 0.56730
+Epoch 5/20
+6680/6680 [==============================] - 2s 241us/step - loss: 0.2436 - acc: 0.9243 - val_loss: 0.6443 - val_acc: 0.8563
+
+Epoch 00005: val_loss did not improve from 0.56730
+Epoch 6/20
+6680/6680 [==============================] - 2s 247us/step - loss: 0.1959 - acc: 0.9412 - val_loss: 0.7594 - val_acc: 0.8407
+
+Epoch 00006: val_loss did not improve from 0.56730
+Epoch 7/20
+6680/6680 [==============================] - 2s 253us/step - loss: 0.1717 - acc: 0.9464 - val_loss: 0.7301 - val_acc: 0.8515
+
+Epoch 00007: val_loss did not improve from 0.56730
+Epoch 8/20
+6680/6680 [==============================] - 2s 238us/step - loss: 0.1477 - acc: 0.9537 - val_loss: 0.7903 - val_acc: 0.8431
+
+Epoch 00008: val_loss did not improve from 0.56730
+Epoch 9/20
+6680/6680 [==============================] - 2s 238us/step - loss: 0.1300 - acc: 0.9620 - val_loss: 0.7466 - val_acc: 0.8503
+
+Epoch 00009: val_loss did not improve from 0.56730
+Epoch 10/20
+6680/6680 [==============================] - 2s 236us/step - loss: 0.1100 - acc: 0.9674 - val_loss: 0.7573 - val_acc: 0.8587
+
+Epoch 00010: val_loss did not improve from 0.56730
+Epoch 11/20
+6680/6680 [==============================] - 2s 234us/step - loss: 0.0954 - acc: 0.9683 - val_loss: 0.8593 - val_acc: 0.8503
+
+Epoch 00011: val_loss did not improve from 0.56730
+Epoch 12/20
+6680/6680 [==============================] - 2s 231us/step - loss: 0.0805 - acc: 0.9751 - val_loss: 0.8605 - val_acc: 0.8503
+
+Epoch 00012: val_loss did not improve from 0.56730
+Epoch 13/20
+6680/6680 [==============================] - 2s 248us/step - loss: 0.0705 - acc: 0.9781 - val_loss: 0.8522 - val_acc: 0.8467
+
+Epoch 00013: val_loss did not improve from 0.56730
+Epoch 14/20
+6680/6680 [==============================] - 2s 250us/step - loss: 0.0648 - acc: 0.9808 - val_loss: 0.8750 - val_acc: 0.8599
+
+Epoch 00014: val_loss did not improve from 0.56730
+Epoch 15/20
+6680/6680 [==============================] - 2s 238us/step - loss: 0.0600 - acc: 0.9835 - val_loss: 0.8599 - val_acc: 0.8611
+
+Epoch 00015: val_loss did not improve from 0.56730
+Epoch 16/20
+6680/6680 [==============================] - 2s 234us/step - loss: 0.0505 - acc: 0.9856 - val_loss: 0.8186 - val_acc: 0.8503
+
+Epoch 00016: val_loss did not improve from 0.56730
+Epoch 17/20
+6680/6680 [==============================] - 2s 233us/step - loss: 0.0468 - acc: 0.9861 - val_loss: 0.9149 - val_acc: 0.8527
+
+Epoch 00017: val_loss did not improve from 0.56730
+Epoch 18/20
+6680/6680 [==============================] - 2s 236us/step - loss: 0.0398 - acc: 0.9873 - val_loss: 0.9108 - val_acc: 0.8539
+
+Epoch 00018: val_loss did not improve from 0.56730
+Epoch 19/20
+6680/6680 [==============================] - 2s 249us/step - loss: 0.0349 - acc: 0.9891 - val_loss: 0.9056 - val_acc: 0.8527
+
+Epoch 00019: val_loss did not improve from 0.56730
+Epoch 20/20
+6680/6680 [==============================] - 2s 245us/step - loss: 0.0342 - acc: 0.9898 - val_loss: 0.9084 - val_acc: 0.8491
+
+Epoch 00020: val_loss did not improve from 0.56730
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[68]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&lt;keras.callbacks.History at 0x1a43b0cc18&gt;</pre>
+</div>
+
+</div>
+
 </div>
 </div>
 
@@ -13358,10 +13516,11 @@ test_{network} = bottleneck_features['test']</code></pre>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[69]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: Load the model weights with the best validation loss.</span>
+<span class="n">Inception_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s1">&#39;saved_models/weights.best.InceptionV3.hdf5&#39;</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -13380,13 +13539,36 @@ test_{network} = bottleneck_features['test']</code></pre>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[70]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: Calculate classification accuracy on the test dataset.</span>
+<span class="n">Inception_predictions</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Inception_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span> <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">test_Inception</span><span class="p">]</span>
+
+<span class="c1"># report test accuracy</span>
+<span class="n">test_accuracy</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Inception_predictions</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">test_targets</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">Inception_predictions</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Test accuracy: </span><span class="si">%.4f%%</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">test_accuracy</span><span class="p">)</span>
 </pre></div>
 
 </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Test accuracy: 78.3493%
+</pre>
+</div>
+</div>
+
 </div>
 </div>
 
