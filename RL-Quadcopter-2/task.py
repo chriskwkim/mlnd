@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from physics_sim import PhysicsSim
 
 class Task():
@@ -47,3 +48,7 @@ class Task():
         self.sim.reset()
         state = np.concatenate([self.sim.pose] * self.action_repeat) 
         return state
+    
+    def action_sample(self):
+        new_thrust = random.gauss(450., 25.)
+        return [new_thrust + random.gauss(0., 1.) for x in range(4)]
