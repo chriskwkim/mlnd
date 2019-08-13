@@ -42,6 +42,6 @@ class Critic:
         self.model.compile(loss='mean_squared_error', optimizer=adam_optimizer)
         
         # Define function to get action gradients
-        action_gradients = K.gradients(loss=q_values, variables=input_action)
+        action_gradients = K.gradients(loss=q_values, variables=input_actions)
         self.get_action_gradients = K.function(inputs=[*self.model.input, K.learning_phase()], outputs=action_gradients)
         

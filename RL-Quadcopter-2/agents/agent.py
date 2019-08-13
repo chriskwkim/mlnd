@@ -3,7 +3,10 @@ from task import Task
 from memory import Memory
 import tensorflow as tf
 from qnetwork import QNetwork
-
+from .actor import Actor
+from .critic import Critic
+from .ou_noise import OUNoise
+from .experience_replay import ExperienceReplayBuffer
 
 class DDPG_Agent:
     def __init__(self, task, noise, memory, rl_param, nn_hidden, actor_lr, critic_lr, q_lambda):
@@ -14,11 +17,11 @@ class DDPG_Agent:
         self.action_space = task.action_size
         self.q_lambda = q_lambda
         
-        self.actor = Actor(self.state_space, self.action_space, self.action_low, self.action_high, hidden_units=nn_hidden[0], learning_rate=action_lr, q_lambda=q_lamba)
+        self.actor = Actor(self.state_space, self.action_space, self.action_low, self.action_high, hidden_units=nn_hidden[0], learning_rate=actor_lr, q_lambda=q_lambda)
         self.actor_target = Actor(self.state_space, self.action_space, self.action_low, self.action_high, hidden_units=nn_hidden[0], learning_rate=actor_lr, q_lambda=q_lambda)
         
         self.critic = Critic(self.state_space, self.action_space, hidden_units=nn_hidden[1], learning_rate=critic_lr, q_lambda=q_lambda)
-        self.critic_target = Critic(self.state_space, self.action_pace, hidden_units=nn_hidden[1], learning_rate=critic_lr, q_lambda=q_lambda)
+        self.critic_target = Critic(self.state_space, self.action_space, hidden_units=nn_hidden[1], learning_rate=critic_lr, q_lambda=q_lambda)
         
         self.actor_target.model.set_weights(self.actor.model.get_weights())
         self.critic_target.model.set_weights(self.critic.model.get_weights())
@@ -26,7 +29,7 @@ class DDPG_Agent:
         # Noise for exploration
         self.mean = noise[0]
         self.sigma = noise[1]
-        self.thefta = noise[2]
+        self.theta = noise[2]
         self.ounoise = OUNoise(self.action_space, self.mean, self.sigma, self.theta)
         
         # Experience Replay memory
@@ -43,11 +46,11 @@ class DDPG_Agent:
         self.learning_rewards = list()
         self.total_reward = None
         self.best_reward = -np.inf
-        self.loss = l
+        self.losses = list()
     
     def restart_task(self):
         if self.total_reward is not None:
-            self.learning_rewards.append(self.total_rewqrd)
+            self.learning_rewards.append(self.total_reward)
             if self.total_reward > self.best_reward: self.best_reward = self.total_reward
         self.total_reward = 0
         state = self.task.reset()
@@ -57,25 +60,22 @@ class DDPG_Agent:
     
     
     def act(self, state, epsilon):
-        self.action_wo_noise = self.action.model.predict(np.reshape(state, newshape=(-1, self.state_space)))
+        self.action_wo_noise = self.actor.model.predict(np.reshape(state, newshape=(-1, self.state_space)))
         self.step_noise = self.ounoise.sample()*epsilon
         action = np.array(self.action_wo_noise[0] + self.step_noise[0]).reshape(-1, self.action_space)
-        action_clipped = np.clip(a=action, a_min-self_low, a_max = self.action_high)
+        action_clipped = np.clip(a=action, a_min=self.action_low, a_max = self.action_high)
         return action_clipped
     
     def store_learn(self, state, action, reward, done, next_state):
-        
-        # Store experience into exp replay memory.
         self.er_buffer.add_env_reaction((state, action, reward, done, next_state))
         
-        # Learn if agent has enough experiences.
         if len(self.er_buffer.mem) > self.batch_size:
             self.learn()
-        
+            
         self.total_reward += reward
-        # Update to the current state of the enviroment.
+        
         self.state = next_state
-     
+        
     def soft_update(self):
         actor_current = np.array(self.actor.model.get_weights())
         critic_current = np.array(self.critic.model.get_weights())
@@ -83,10 +83,9 @@ class DDPG_Agent:
         actor_target = np.array(self.actor_target.model.get_weights())
         critic_target = np.array(self.critic_target.model.get_weights())
         
-        self.actor_target.model.set_weights(actor_target*(1-self.t) + self.t*actor_current)
-        self.critic_target.model.set_weights(critic_target*(1-self.t) + self.t*critic_current)
-    
-    # Learn step of the agent, update weights of actor-critic and actor-critic target NN.
+        self.actor_target.model.set_weights(actor_target * (1 - self.t) + self.t * actor_current)
+        self.critic_target.model.set_weights(critic_target * (1 - self.t) + self.t * critic_current)
+        
     def learn(self):
         states, actions, rewards, dones, next_states = self.er_buffer.sample_batch()
         states = np.vstack(states)
@@ -95,25 +94,21 @@ class DDPG_Agent:
         dones = np.array(dones, dtype=np.uint8).reshape(-1, 1)
         next_states = np.vstack(next_states)
         
-        # Get action for deterministic policy.
         next_actions = self.actor_target.model.predict_on_batch(next_states)
         next_q_values = self.critic_target.model.predict_on_batch([next_states, next_actions])
         
-        # Need to handle the done case.
-        targets = rewards + self.gamma*next_q_values*(1-dones)
-        loss = self.critic.model.train_on_batch(x=[states, actions],y=targets)
+        targets = rewards + self.gamma * next_q_values * (1 - dones)
+        loss = self.critic.model.train_on_batch(x=[states, actions], y=targets)
         self.losses.append(loss)
         
-        # Getting gradients before Critics backprop.
         action_gradients = self.critic.get_action_gradients([states, actions, 0])
         action_gradients_prev = action_gradients
         action_gradients = np.reshape(action_gradients[0], (-1, self.action_space))
         
-        # Learning Phase = 0 (Test), we just want the gradient, no update on weights.
         self.actor.train_fn([states, action_gradients, 1])
         
-        # Do soft update on weigths.
         self.soft_update()
+        
             
            
             

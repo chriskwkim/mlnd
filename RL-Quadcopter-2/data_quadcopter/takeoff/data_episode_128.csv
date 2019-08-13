@@ -1,0 +1,2 @@
+time,x,y,z,phi,theta,psi,x_velocity,y_velocity,z_velocity,x_accel,y_accel,z_accel,phi_velocity,theta_velocity,psi_velocity,rotor_speed1,rotor_speed2,rotor_speed3,rotor_speed4,reward
+0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,397.90802,397.80563,398.5527,398.0268,0

@@ -5,7 +5,7 @@ from physics_sim import PhysicsSim
 class Task():
     """Task (environment) that defines the goal and provides feedback to the agent."""
     def __init__(self, init_pose=None, init_velocities=None, 
-        init_angle_velocities=None, runtime=5., target_pos=None):
+        init_angle_velocities=None, runtime=5., action_repeat=3, target_pos=None, debug=False):
         """Initialize a Task object.
         Params
         ======
@@ -17,12 +17,13 @@ class Task():
         """
         # Simulation
         self.sim = PhysicsSim(init_pose, init_velocities, init_angle_velocities, runtime) 
-        self.action_repeat = 3
+        self.action_repeat = int(action_repeat)
 
         self.state_size = self.action_repeat * 6
         self.action_low = 0
         self.action_high = 900
         self.action_size = 4
+        self.debug=debug
 
         # Goal
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.]) 
@@ -30,6 +31,17 @@ class Task():
     def get_reward(self):
         """Uses current pose of sim to return reward."""
         reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
+        
+        
+        if self.debug:
+            print('------ Step --------')
+            print('Position', self.sim.pose[:3], 'Z Speed', self.sim.v[2])
+            print()
+            print('Position reward', reward_position)
+            print('Position Z reward', reward_z_axis)
+            #print('Speed Z reward', reward_speed_z)
+            print('Final Reward', reward)
+            
         return reward
 
     def step(self, rotor_speeds):
