@@ -1,12 +1,12 @@
 from collections import deque
 import numpy as np
 
-class ExperienceReplayBuffer:
+class ExperienceReplayMemory:
     def __init__(self, capacity, batch_size):
         self.batch_size = batch_size
         self.mem = deque(maxlen=capacity)
         
-    def add_env_reaction(self, env_reaction):
+    def add(self, env_reaction):
         self.mem.append(env_reaction)
         
     def sample_batch(self, debug=False):
