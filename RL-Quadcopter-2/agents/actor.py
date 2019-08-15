@@ -46,3 +46,7 @@ class Actor:
         updates = optimizer.get_updates(params=self.model.trainable_weights, loss=loss)
         
         self.train_fn = K.function(inputs=[self.model.input, action_gradients, K.learning_phase()], outputs=[], updates=updates)
+        
+        print('actor model')
+        self.model.summary()
+        

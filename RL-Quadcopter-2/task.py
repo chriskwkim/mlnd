@@ -53,6 +53,7 @@ class Task():
             reward += self.get_reward() 
             pose_all.append(self.sim.pose)
         next_state = np.concatenate(pose_all)
+        # print('task next state: {}'.format(next_state))
         return next_state, reward, done
 
     def reset(self):

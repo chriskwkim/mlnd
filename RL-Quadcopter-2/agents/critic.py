@@ -46,3 +46,7 @@ class Critic:
         
         self.get_action_gradients = K.function(inputs=[*self.model.input, K.learning_phase()], outputs=action_gradients)
         
+        print('critic model')
+        self.model.summary()
+      
+        

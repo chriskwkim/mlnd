@@ -7,11 +7,12 @@ class ExperienceReplayMemory:
         self.mem = deque(maxlen=capacity)
         
     def add(self, env_reaction):
+        #print('add to memory: {}'.format(env_reaction))
         self.mem.append(env_reaction)
         
-    def sample_batch(self, debug=False):
+    def sample_batch(self):
         indexes = np.random.choice(a=np.arange(len(self.mem)), size=self.batch_size, replace=False)
-        if debug: print(indexes)
+        # if debug: print(indexes)
         states = list()
         actions = list()
         rewards = list()
@@ -20,10 +21,13 @@ class ExperienceReplayMemory:
         for index in indexes:
             if self.mem[index] is None:
                 print(self.mem[index])
-            st, at, rt, dt, st_1 = self.mem[index]
+            st, at, rt, st_1, dt = self.mem[index]
             states.append(st)
             actions.append(at)
             rewards.append(rt)
             dones.append(dt)
             next_states.append(st_1)
-        return states, actions, rewards, dones, next_states
+        return states, actions, rewards, next_states, dones
+    
+    def len(self):
+        return len(self.mem)

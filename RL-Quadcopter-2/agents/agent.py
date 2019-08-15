@@ -32,8 +32,8 @@ class DDPG_Agent:
         self.ounoise = OUNoise(self.action_size, self.mu, self.sigma, self.theta)
         
         # Experience Replay memory
-        self.er_memory = ExperienceReplayMemory(capacity=1000000, batch_size=64)
-        self.populate_memory(1000000)
+        self.er_memory = ExperienceReplayMemory(capacity=10000, batch_size=64)
+        # self.populate_memory(1000)
         
         # RL parameters
         self.gamma = 0.99    # Discount factor
@@ -44,7 +44,9 @@ class DDPG_Agent:
         self.learning_rewards = list()
         self.total_reward = None
         self.best_reward = -np.inf
-        self.loss = l
+        self.loss = 1
+        
+        self.batch_size = 64
     
     def reset_episode(self):
         state = self.task.reset()
@@ -54,11 +56,13 @@ class DDPG_Agent:
     
     def step(self, action, reward, next_state, done):
         # Add to experience replay memory
-        self.er_memory.add(self.state, action, reward, next_state, done)
+        self.er_memory.add((self.state, action, reward, next_state, done))
         
-        experiences = self.er_memory.sample()
-        self.learn(experiences)
-        
+#         experiences = self.er_memory.sample()
+#         self.learn(experiences)
+        if self.er_memory.len() > self.batch_size:
+            self.learn()
+
         self.state = next_state
     
     def act(self, states):
@@ -69,7 +73,7 @@ class DDPG_Agent:
         
     def learn(self):
         # Get sample batch from Experience Replay Memory
-        states, actions, rewards, dones, next_states = self.er_memory.sample_batch()
+        states, actions, rewards, next_states, dones = self.er_memory.sample_batch()
         # Convert each list into arrays
         states = np.vstack(states)
         actions = np.array(actions, dtype=np.float32).reshape(-1, self.action_size)
@@ -79,7 +83,7 @@ class DDPG_Agent:
         
         # Get predicted next actions and Q values from target model
         next_actions = self.actor_target.model.predict_on_batch(next_states)
-        next_q_values = self.critic_target.model.prediect_on_batch([next_stats, next_actions])
+        next_q_values = self.critic_target.model.predict_on_batch([next_states, next_actions])
         
         # Compute Q targets
         q_targets = rewards + self.gamma * next_q_values * (1 - dones)
