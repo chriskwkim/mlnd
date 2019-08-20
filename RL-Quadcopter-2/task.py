@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import random
 from physics_sim import PhysicsSim
 
@@ -30,8 +31,17 @@ class Task():
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
-        reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
+#         reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
+        reward = np.tanh(1. - 0.003 * (np.sqrt(np.square(self.sim.pose[:3] - self.target_pos).sum())))
+#         reward = 1. - np.tanh(np.sqrt(np.square(self.sim.pose[:3] - self.target_pos).sum()))
+#         bonus = 1. - np.tanh(self.target_pos[2] - self.sim.pose[2]) 
+#         reward += bonus
+#         reward = reward / 2.0
+        # reward = 1 / (1 + math.exp(-reward))
+        if self.sim.done and self.sim.runtime > self.sim.time:
+            reward = -1.0
         
+        # reward = np.tanh(1 - 0.003*(abs(self.sim.pose[:3] - self.target_pos))).sum()
         
         if self.debug:
             print('------ Step --------')
@@ -53,7 +63,6 @@ class Task():
             reward += self.get_reward() 
             pose_all.append(self.sim.pose)
         next_state = np.concatenate(pose_all)
-        # print('task next state: {}'.format(next_state))
         return next_state, reward, done
 
     def reset(self):
@@ -62,6 +71,3 @@ class Task():
         state = np.concatenate([self.sim.pose] * self.action_repeat) 
         return state
     
-    def action_sample(self):
-        new_thrust = random.gauss(450., 25.)
-        return [new_thrust + random.gauss(0., 1.) for x in range(4)]
