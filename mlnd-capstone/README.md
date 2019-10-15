@@ -3,7 +3,7 @@
 
 Preventing credit card fraud is an essential part of credit card payment processing. Improving fraud detection system will save a lot of money and improve consumers' experience.
 
-In this project, I explored the data set provided by IEEE-CIS Fraud Detection competition2 on Kaggle and apply feature engineering to prepare for machine learning algorithms. Using the prepared data, I applied machine learning algorithms to train the fraud detection model and evaluate the model for the meaningful metrics.
+In this project, I explored the data set provided by IEEE-CIS Fraud Detection competition on Kaggle and apply feature engineering to prepare for machine learning algorithms. Using the prepared data, I applied machine learning algorithms to train the fraud detection model and evaluate the model for the meaningful metrics.
 
 
 ## IEEE-CIS Fraud Detection
