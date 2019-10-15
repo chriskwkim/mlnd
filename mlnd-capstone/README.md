@@ -23,8 +23,6 @@ The training and testing datasets for the IEEE-CIS Fraud Detection can be downlo
 
 [Fraud Detection Learning - Dropped too many nulls.ipynb](Fraud%20Detection%20Learning%20-%20Dropped%20too%20many%20nulls.ipynb)
 
-[Fraud Detection - Tuned.ipynb](Fraud%20Detection%20-%20Tuned.ipynb)
-
 ## Report
 
 [report]{report.pdf}
