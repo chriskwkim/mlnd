@@ -18,7 +18,7 @@ The training and testing datasets for the IEEE-CIS Fraud Detection can be downlo
 
 ## Proposal
 
-[proposal]{proposal.pdf}
+[proposal](proposal.pdf)
 
 ## Kernels
 
@@ -44,7 +44,7 @@ The training and testing datasets for the IEEE-CIS Fraud Detection can be downlo
 
 ## Report
 
-[report]{report.pdf}
+[report](report.pdf)
 
 
 Note: The notebook assumes data files are stored in `./data/` directory.
